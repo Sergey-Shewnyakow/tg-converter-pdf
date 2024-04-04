@@ -39,11 +39,10 @@ async def get_doc(message: types.Message):
         file_path = file_info.file_path
         file_url = f"https://api.telegram.org/file/bot{BOT_API_KEY}/{file_path}"
         file_links.append(file_url)
-        # Проверяем, есть ли в списке достаточное количество файлов для объединения
         if len(file_links) >= 2:
             await merge_files(message)
 async def merge_files(message: types.Message):
-    if len(file_links) > 1:  # Проверяем, что у нас есть более одного файла для объединения
+    if len(file_links) > 1: 
         links_to_pdfs = file_links
         merge_result = a2p_client.PdfSharp.merge(links_to_pdfs, inline=True, file_name='test.pdf')
         u_pdf = merge_result.result.get('FileUrl')
