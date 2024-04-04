@@ -48,7 +48,7 @@ async def merge_files(message: types.Message):
         u_pdf = merge_result.result.get('FileUrl')
         await bot.send_document(message.chat.id, u_pdf)
     else:
-        await bot.send_message(message.chat.id, "Недостаточно файлов для объединения")
+        await bot.send_message(message.chat.id, "Недостаточно файлов")
 
 async def main() -> None:
     await dp.start_polling(bot)
