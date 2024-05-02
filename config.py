@@ -1,2 +1,1 @@
-pdf_api = "7b15aa85-b874-444f-b20f-6cd7d6b63a76"
-BOT_API_KEY = '7058828194:AAGtEg1JVxIR5tqHQrqaV1a5_sFFERSrZyo'
+
