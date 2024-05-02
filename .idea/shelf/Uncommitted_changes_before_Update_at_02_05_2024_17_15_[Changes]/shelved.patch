@@ -1,0 +1,14 @@
+Index: config.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/config.py b/.env
+rename from config.py
+rename to .env
+--- a/config.py	(revision 6a48fc4dbccf27a7a30e583a8219759cf124771e)
++++ b/.env	(date 1714645231051)
+@@ -1,2 +1,2 @@
+-pdf_api = "7b15aa85-b874-444f-b20f-6cd7d6b63a76"
++pdf_api = "d57d596b-e42f-49ba-b78f-6ffc11c9ad20	"
+ BOT_API_KEY = '7058828194:AAGtEg1JVxIR5tqHQrqaV1a5_sFFERSrZyo'
