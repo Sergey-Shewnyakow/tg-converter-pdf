@@ -1,4 +1,3 @@
-import urllib
 
 from aiogram import Bot, types, Dispatcher, F, Router
 from aiogram.enums import ParseMode, ContentType
@@ -12,11 +11,11 @@ import keyboards as kb
 
 router = Router()
 
-
 class ConversionState(StatesGroup):
     waiting_for_conversion = State()
     waiting_for_merge = State()
     waiting_for_edit = State()
+    waiting_for_editer = State()
 
 @router.message(CommandStart())
 async def start_cmd(message: types.Message):
@@ -24,22 +23,24 @@ async def start_cmd(message: types.Message):
                            text='Добро пожаловать в нашего бота! Выберите действие!',
                            reply_markup=kb.main)
 
-@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Редоктировать PDF ✏️"])
+@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Разделение PDF ✂️"])
 async def convert_or_merge(message: types.Message, state: FSMContext):
     if message.text == "Преобразовать в PDF 📝":
         await state.set_state(ConversionState.waiting_for_conversion)
         await bot.send_message(chat_id=message.from_user.id,
-                               text="Отправьте файл в формате docx, xlsx, txt и тд")
+                               text="Отправьте файл для конвертации")
     elif message.text == "Объединить PDF 📚":
         await state.set_state(ConversionState.waiting_for_merge)
         await bot.send_message(chat_id=message.from_user.id,
                                text="Отправьте несколько pdf файлов одним сообщением")
-    elif message.text == "Редоктировать PDF ✏️":
+    elif message.text == "Разделение PDF ✂️":
         await state.set_state(ConversionState.waiting_for_edit)
         await bot.send_message(chat_id=message.from_user.id,
-                               text="Отправьте PDF файл")
+                               text="Укажите диапазон страниц, после отправьте файл")
 
     print(await state.get_state())
+
+
 @router.message(F.content_type == ContentType.DOCUMENT)
 async def process_document(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
@@ -54,8 +55,12 @@ async def process_document(message: types.Message, state: FSMContext):
         await state.clear()
 
     elif current_state == 'ConversionState:waiting_for_edit' :
-        await edit_doc(message)
+        await edit_doc(message, 0, 2)
         await state.clear()
+
+    # elif current_state == 'ConversionState:waiting_for_editor' :
+    #     await edit_doc(message, 0, 2)
+    #     await state.clear()
 
     elif current_state == None :
         await message.answer("Сначала выберите действие!")
@@ -97,15 +102,13 @@ async def merge_files(message: types.Message):
 
 
 
-async def edit_doc(message: types.Message):
+async def edit_doc(message: types.Message, start, end):
     file_id = message.document.file_id
     file_info = await bot.get_file(file_id)
     print(file_info)
     file_path = file_info.file_path
     file_url = f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
     url = file_url
-    start = 0
-    end = 2
     response = a2p_client.PdfSharp.extract_pages(url, start, end)
     u_pdf = response.result.get('FileUrl')
     await bot.send_document(message.chat.id, u_pdf)
