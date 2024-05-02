@@ -58,7 +58,7 @@ async def process_document(message: types.Message, state: FSMContext):
         await state.clear()
 
     elif current_state == None :
-        await message.answer("Сначала выберите действие, а потом отправляйте файл!")
+        await message.answer("Сначала выберите действие!")
 async def convert_to_pdf(message: types.Message):
     if message.document.mime_type != 'application/pdf':
         file_id = message.document.file_id
