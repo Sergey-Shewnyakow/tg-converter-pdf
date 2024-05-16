@@ -27,14 +27,11 @@ class ConversionState(StatesGroup):
 async def clear_folder():
     folder_path = "Temp"
     try:
-        # Получаем список файлов и папок внутри указанной папки
         contents = os.listdir(folder_path)
-        # Удаляем каждый файл внутри папки
         for item in contents:
             item_path = os.path.join(folder_path, item)
             if os.path.isfile(item_path):
                 os.remove(item_path)
-        # Удаляем каждую вложенную папку внутри папки
         for item in contents:
             item_path = os.path.join(folder_path, item)
             if os.path.isdir(item_path):
