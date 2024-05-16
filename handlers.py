@@ -24,23 +24,22 @@ class ConversionState(StatesGroup):
     waiting_for_merge = State()
     waiting_for_edit = State()
     waiting_for_editer = State()
+
 async def clear_folder():
     folder_path = "Temp"
     try:
-        contents = os.listdir(folder_path)
-        for item in contents:
-            item_path = os.path.join(folder_path, item)
-            if os.path.isfile(item_path):
-                os.remove(item_path)
-        for item in contents:
-            item_path = os.path.join(folder_path, item)
-            if os.path.isdir(item_path):
-                shutil.rmtree(item_path)
-        print(f"Folder contents cleared successfully: {folder_path}")
+        shutil.rmtree(folder_path)
     except Exception as e:
-        print(f"Failed to clear folder contents {folder_path}. Reason: {e}")
+        print(f"Failed to delete folder {folder_path}. Reason: {e}")
 
 
+async def create_folder():
+    folder_path = "Temp"
+    try:
+        os.makedirs(folder_path)
+        print(f"Folder '{folder_path}' created successfully.")
+    except Exception as e:
+        print(f"Failed to create folder '{folder_path}'. Reason: {e}")
 
 @router.message(CommandStart())
 async def start_cmd(message: types.Message):
@@ -63,7 +62,7 @@ async def convert_or_merge(message: types.Message, state: FSMContext):
         await bot.send_message(chat_id=message.from_user.id,
                                text="Отправьте файл")
         await clear_folder()
-
+        await create_folder()
     print(await state.get_state())
 
 
@@ -164,7 +163,7 @@ async def edit_doc(message: types.Message):
         image_data = await pdf_page_to_image(pdf_data, page)
         with open("Temp/image.png", "wb") as file:
             file.write(image_data)
-        await bot.send_photo(chat_id=message.chat.id, photo=types.FSInputFile(path="Temp/image.png"), reply_markup=kb.selection, caption= 'Если хотите сохранить определенный страницы напишите в формате (1-2)')
+        await bot.send_photo(chat_id=message.chat.id, photo=types.FSInputFile(path="Temp/image.png"), reply_markup=kb.selection, caption= 'Если хотите сохранить определенный страницы в формате (начальная_страница-конечная_страница), например 1-4')
 
 
 
@@ -211,7 +210,7 @@ async def divide_line(callback:CallbackQuery):
     await callback.bot.edit_message_media(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
-        media=types.InputMediaPhoto(media= types.FSInputFile(path ='Temp/temp_photo.png'), caption= "Введите диапозон")
+        media=types.InputMediaPhoto(media= types.FSInputFile(path ='Temp/image.png'), caption= "Введите диапозон в формате (начальная_страница-конечная_страница), например 1-4")
     )
 
 @router.message()
@@ -221,8 +220,10 @@ async def handle_message(message: types.Message,  state: FSMContext):
     if match:
         start_page = int(match.group(1))
         end_page = int(match.group(2))
-        await bot.send_message(message.chat.id, f"{start_page} , {end_page}")
-        await split_pdf(start_page, end_page, message)
+        if start_page <= end_page and end_page <= total_pages:
+            await bot.send_message(message.chat.id, f"Файл разделен с {start_page} по {end_page} страницу")
+            await split_pdf(start_page, end_page, message)
+        else: await message.reply("Пожалуйста, введите корректные данные")
     else:
         await message.reply("Пожалуйста, введите диапазон в формате 'начальная_страница-конечная_страница', например '1-4'.")
 
