@@ -11,6 +11,8 @@ import keyboards as kb
 import fitz
 import aiohttp
 import PyPDF2
+import os
+import shutil
 
 from io import BytesIO
 
@@ -22,6 +24,26 @@ class ConversionState(StatesGroup):
     waiting_for_merge = State()
     waiting_for_edit = State()
     waiting_for_editer = State()
+async def clear_folder():
+    folder_path = "Temp"
+    try:
+        # Получаем список файлов и папок внутри указанной папки
+        contents = os.listdir(folder_path)
+        # Удаляем каждый файл внутри папки
+        for item in contents:
+            item_path = os.path.join(folder_path, item)
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+        # Удаляем каждую вложенную папку внутри папки
+        for item in contents:
+            item_path = os.path.join(folder_path, item)
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+        print(f"Folder contents cleared successfully: {folder_path}")
+    except Exception as e:
+        print(f"Failed to clear folder contents {folder_path}. Reason: {e}")
+
+
 
 @router.message(CommandStart())
 async def start_cmd(message: types.Message):
@@ -42,7 +64,8 @@ async def convert_or_merge(message: types.Message, state: FSMContext):
     elif message.text == "Смотреть/Разделить PDF ✂️":
         await state.set_state(ConversionState.waiting_for_edit)
         await bot.send_message(chat_id=message.from_user.id,
-                               text="Укажите диапазон страниц, после отправьте файл")
+                               text="Отправьте файл")
+        await clear_folder()
 
     print(await state.get_state())
 
@@ -64,9 +87,7 @@ async def process_document(message: types.Message, state: FSMContext):
         await edit_doc(message)
         await state.clear()
 
-    # elif current_state == 'ConversionState:waiting_for_editor' :
-    #     await edit_doc(message, 0, 2)
-    #     await state.clear()
+
 
     elif current_state == None :
         await message.answer("Сначала выберите действие!")
@@ -106,16 +127,7 @@ async def merge_files(message: types.Message):
     else:
         await bot.send_message(message.chat.id, "Недостаточно файлов")
 
-# async def editors_doc(message: types.Message, start, end):
-#     file_id = message.document.file_id
-#     file_info = await bot.get_file(file_id)
-#     print(file_info)
-#     file_path = file_info.file_path
-#     file_url = f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
-#     url = file_url
-#     response = a2p_client.PdfSharp.extract_pages(url, start, end)
-#     u_pdf = response.result.get('FileUrl')
-#     await bot.send_document(message.chat.id, u_pdf)
+
 
 
 async def download_pdf_from_url(pdf_url):
