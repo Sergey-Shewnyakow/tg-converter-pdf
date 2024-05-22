@@ -5,7 +5,7 @@ from aiogram import Dispatcher, Bot, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 from main import bot, a2p_client, bot_token
 import keyboards as kb
 import fitz
@@ -13,6 +13,12 @@ import aiohttp
 import PyPDF2
 import os
 import shutil
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from datetime import datetime
+from aiogram.types import CallbackQuery, FSInputFile
 
 from io import BytesIO
 
@@ -47,7 +53,7 @@ async def start_cmd(message: types.Message):
                            text='Добро пожаловать в нашего бота! Выберите действие!',
                            reply_markup=kb.main)
 
-@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Смотреть/Разделить PDF ✂️"])
+@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Смотреть/Разделить PDF ✂️", "Сделать титульный лист 📝"])
 async def convert_or_merge(message: types.Message, state: FSMContext):
     if message.text == "Преобразовать в PDF 📝":
         await state.set_state(ConversionState.waiting_for_conversion)
@@ -57,6 +63,17 @@ async def convert_or_merge(message: types.Message, state: FSMContext):
         await state.set_state(ConversionState.waiting_for_merge)
         await bot.send_message(chat_id=message.from_user.id,
                                text="Отправьте несколько pdf файлов одним сообщением")
+    elif message.text == "Сделать титульный лист 📝":
+        await bot.send_message(chat_id=message.from_user.id,
+                               text="Отправьте данные о титульном листе в формате:\n"
+                                    "Номер кафедры\n"
+                                    "Должность преподавателя\n"
+                                    "Инициалы и фамилия преподавателя\n"
+                                    "Лабораторная работа или практическая с номером\n"
+                                    "Название работы\n"
+                                    "Дисциплина по которой выполняется работа\n"
+                                    "Номер группы\n"
+                                    "Инициалы и фамилия студента")
     elif message.text == "Смотреть/Разделить PDF ✂️":
         await state.set_state(ConversionState.waiting_for_edit)
         await bot.send_message(chat_id=message.from_user.id,
@@ -158,12 +175,14 @@ async def pdf_page_to_image(pdf_data, num):
 
 async def edit_doc(message: types.Message):
     pdf_data = await get_pdf_data_from_message(message)
+    global page
     page = 0
     if pdf_data:
         image_data = await pdf_page_to_image(pdf_data, page)
         with open("Temp/image.png", "wb") as file:
             file.write(image_data)
-        await bot.send_photo(chat_id=message.chat.id, photo=types.FSInputFile(path="Temp/image.png"), reply_markup=kb.selection, caption= 'Если хотите сохранить определенный страницы в формате (начальная_страница-конечная_страница), например 1-4')
+        await bot.send_photo(chat_id=message.chat.id, photo=types.FSInputFile(path="Temp/image.png"), reply_markup=kb.selection,
+                             caption= 'Если хотите сохранить определенные страницы, напишите в формате (начальная_страница-конечная_страница), например 1-4')
 
 
 
@@ -212,6 +231,66 @@ async def divide_line(callback:CallbackQuery):
         message_id=callback.message.message_id,
         media=types.InputMediaPhoto(media= types.FSInputFile(path ='Temp/image.png'), caption= "Введите диапозон в формате (начальная_страница-конечная_страница), например 1-4")
     )
+
+@router.message(lambda message: len(message.text.strip().split('\n')) > 1)
+async def create_title_page(message: types.Message):
+    lines = message.text.strip().split('\n')
+    if len(lines) != 8:
+        await message.reply("Введите корректные данные")
+    else:
+        department_number, position, teacher_name, report_about, work_title, course_name, group_number, student_name = lines
+        report_about = report_about.upper()
+        work_title = work_title.upper()
+        course_name = course_name.upper()
+
+        current_year = datetime.now().year
+        pdfmetrics.registerFont(TTFont('Times-New-Roman', 'Times-New-Roman.ttf'))
+
+        c = canvas.Canvas("title_page.pdf", pagesize=A4)
+        c.setFont("Times-New-Roman", 12)
+        c.drawCentredString(297.5, 800, "ГУАП")
+        c.drawCentredString(297.5, 760, f"КАФЕДРА №{department_number}")
+        c.drawString(70, 700, "ОТЧЕТ")
+        c.drawString(70, 680, "ЗАЩИЩЕН С ОЦЕНКОЙ")
+        c.drawString(70, 660, "ПРЕПОДАВАТЕЛЬ")
+        c.drawString(80, 640, position)
+        c.line(70, 635, 230, 635)
+        c.setFont("Times-New-Roman", 10)
+        c.drawString(80, 625, "должность, уч. степень, звание")
+        c.line(250, 635, 410, 635)
+        c.drawString(295, 625, "подпись, дата")
+        c.setFont("Times-New-Roman", 12)
+        c.drawString(460, 640, teacher_name)
+        c.line(430, 635, 580, 635)
+        c.setFont("Times-New-Roman", 10)
+        c.drawString(460, 625, "инициалы, фамилия")
+        c.setFont("Times-New-Roman", 14)
+        c.drawCentredString(297.5, 550, f"ОТЧЕТ О {report_about}")
+        c.drawCentredString(297.5, 500, work_title)
+        c.setFont("Times-New-Roman", 12)
+        c.drawCentredString(297.5, 430, "по курсу:")
+        c.setFont("Times-New-Roman", 14)
+        c.drawCentredString(297.5, 410, course_name)
+        c.setFont("Times-New-Roman", 12)
+        c.drawString(70, 290, "РАБОТУ ВЫПОЛНИЛ")
+        c.drawString(70, 270, f"СТУДЕНТ гр. №")
+        c.drawString(215, 275, group_number)
+        c.line(180, 270, 280, 270)
+        c.line(300, 270, 430, 270)
+        c.setFont("Times-New-Roman", 10)
+        c.drawString(335, 260, "подпись, дата")
+        c.setFont("Times-New-Roman", 12)
+        c.drawString(470, 275, student_name)
+        c.line(450, 270, 580, 270)
+        c.setFont("Times-New-Roman", 10)
+        c.drawString(470, 260, "инициалы, фамилия")
+        c.setFont("Times-New-Roman", 12)
+        c.drawCentredString(297.5, 100, f"Санкт-Петербург {current_year}")
+        c.save()
+
+        document = FSInputFile('title_page.pdf')
+        await message.answer_document(document)
+        os.remove('title_page.pdf')
 
 @router.message()
 async def handle_message(message: types.Message,  state: FSMContext):

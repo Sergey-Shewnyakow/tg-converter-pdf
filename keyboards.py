@@ -4,7 +4,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 main = ReplyKeyboardMarkup(keyboard= [
     [KeyboardButton(text="Преобразовать в PDF 📝")],
     [KeyboardButton(text="Объединить PDF 📚")],
-    [KeyboardButton(text="Смотреть/Разделить PDF ✂️")]
+    [KeyboardButton(text="Смотреть/Разделить PDF ✂️")],
+    [KeyboardButton(text="Сделать титульный лист 📝")]
 
 ],                   resize_keyboard= True, input_field_placeholder= "Выберите действие")
 
