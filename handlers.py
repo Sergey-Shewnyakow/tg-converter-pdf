@@ -63,7 +63,7 @@ async def start_cmd(message: types.Message):
                            text='Добро пожаловать в нашего бота! Выберите действие!',
                            reply_markup=kb.main)
 
-@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Смотреть/Разделить PDF ✂️", "Сделать титульный лист 📝"])
+@router.message(lambda message: message.text in ['Преобразовать в PDF 📝', 'Объединить PDF 📚', "Смотреть/Разделить PDF ✂️"])
 async def convert_or_merge(message: types.Message, state: FSMContext):
     if message.text == "Преобразовать в PDF 📝":
         await state.set_state(ConversionState.waiting_for_conversion)
@@ -242,52 +242,52 @@ async def divide_line(callback:CallbackQuery):
     )
 
 
-@router.message(Command('titul'))
+@router.message(lambda message: message.text in ['Сделать титульный лист 📝'])
 async def create_title_page_start(message: types.Message, state: FSMContext):
     await state.set_state(TitlePageState.department_number)
-    await message.answer("Введите номер кафедры:")
+    await message.answer("Введите номер кафедры \nПример: 41")
 
 
 @router.message(TitlePageState.department_number)
 async def process_department_number(message: types.Message, state: FSMContext):
     await state.update_data(department_number=message.text.strip())
-    await message.answer("Введите должность преподавателя:")
+    await message.answer("Введите должность преподавателя \nПример: канд. техн. наук")
     await state.set_state(TitlePageState.position)
 
 @router.message(TitlePageState.position)
 async def process_position(message: types.Message, state: FSMContext):
     await state.update_data(position=message.text.strip())
-    await message.answer("Введите имя преподавателя:")
+    await message.answer("Введите имя преподавателя \nПример: А.A. Антонов")
     await state.set_state(TitlePageState.teacher_name)
 
 @router.message(TitlePageState.teacher_name)
 async def process_teacher_name(message: types.Message, state: FSMContext):
     await state.update_data(teacher_name=message.text.strip())
-    await message.answer("Введите название отчета:")
+    await message.answer("Введите вид отчета \nПример: Лабораторной работе №1 ")
     await state.set_state(TitlePageState.report_about)
 
 @router.message(TitlePageState.report_about)
 async def process_report_about(message: types.Message, state: FSMContext):
     await state.update_data(report_about=message.text.strip())
-    await message.answer("Введите название работы:")
+    await message.answer("Введите название работы \nПример: Тг бот")
     await state.set_state(TitlePageState.work_title)
 
 @router.message(TitlePageState.work_title)
 async def process_work_title(message: types.Message, state: FSMContext):
     await state.update_data(work_title=message.text.strip())
-    await message.answer("Введите название курса:")
+    await message.answer("Введите название курса \nПример: Технологии программирования")
     await state.set_state(TitlePageState.course_name)
 
 @router.message(TitlePageState.course_name)
 async def process_course_name(message: types.Message, state: FSMContext):
     await state.update_data(course_name=message.text.strip())
-    await message.answer("Введите номер группы:")
+    await message.answer("Введите номер группы \nПример: 4219")
     await state.set_state(TitlePageState.group_number)
 
 @router.message(TitlePageState.group_number)
 async def process_group_number(message: types.Message, state: FSMContext):
     await state.update_data(group_number=message.text.strip())
-    await message.answer("Введите имя студента:")
+    await message.answer("Введите имя студента \nПример: И.И. Иванов")
     await state.set_state(TitlePageState.student_name)
 
 @router.message(TitlePageState.student_name)
