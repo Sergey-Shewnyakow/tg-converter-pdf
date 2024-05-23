@@ -7,7 +7,8 @@
 2. Создайте файл .env
 3. Укажите в нем токен на вашего бота (BOT_API_KEY = "token") и токе pdf ковертатора (pdf_api = "token")(https://portal.api2pdf.com/register)
 # Использование
-![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/5103e237-df1e-4b2b-b475-8b7e26e88768)
+![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/584c2fde-6895-496d-a03c-e52f2334245c)
+
 
 # Функционал 
 
@@ -34,4 +35,9 @@
 - **Ввод диапазона страниц**: При запросе на разделение PDF файла, бот ожидает, что вы укажете диапазон страниц в формате "начальная_страница-конечная_страница".
 
 ![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/b94e15e7-e144-4c6e-bd31-83dbf107f53d)
+
+- **Создание титульного листа**: Бот позволяет создать титульные листы для работ выполняймых студентами ГУАПа.
+![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/dcd3ef26-30bd-4c62-8634-8fccab6a851b)
+![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/d70f79d2-89d1-43e6-969f-7f1d277c9f54)
+
 
