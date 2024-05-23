@@ -37,7 +37,9 @@
 ![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/b94e15e7-e144-4c6e-bd31-83dbf107f53d)
 
 - **Создание титульного листа**: Бот позволяет создать титульные листы для работ выполняймых студентами ГУАПа.
+
 ![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/dcd3ef26-30bd-4c62-8634-8fccab6a851b)
+
 ![image](https://github.com/Sergey-Shewnyakow/tg-converter-pdf/assets/55350656/d70f79d2-89d1-43e6-969f-7f1d277c9f54)
 
 
