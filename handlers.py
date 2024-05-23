@@ -2,7 +2,7 @@ import re
 from aiogram import Bot, types, Dispatcher, F, Router
 from aiogram.enums import ParseMode, ContentType
 from aiogram import Dispatcher, Bot, types
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
@@ -30,6 +30,16 @@ class ConversionState(StatesGroup):
     waiting_for_merge = State()
     waiting_for_edit = State()
     waiting_for_editer = State()
+
+class TitlePageState(StatesGroup):
+    department_number = State()
+    position = State()
+    teacher_name = State()
+    report_about = State()
+    work_title = State()
+    course_name = State()
+    group_number = State()
+    student_name = State()
 
 async def clear_folder():
     folder_path = "Temp"
@@ -99,7 +109,6 @@ async def process_document(message: types.Message, state: FSMContext):
     elif current_state == 'ConversionState:waiting_for_edit' :
         await edit_doc(message)
         await state.clear()
-
 
 
     elif current_state == None :
@@ -232,79 +241,134 @@ async def divide_line(callback:CallbackQuery):
         media=types.InputMediaPhoto(media= types.FSInputFile(path ='Temp/image.png'), caption= "Введите диапозон в формате (начальная_страница-конечная_страница), например 1-4")
     )
 
-@router.message(lambda message: len(message.text.strip().split('\n')) > 1)
-async def create_title_page(message: types.Message):
-    lines = message.text.strip().split('\n')
-    if len(lines) != 8:
-        await message.reply("Введите корректные данные")
-    else:
-        department_number, position, teacher_name, report_about, work_title, course_name, group_number, student_name = lines
-        report_about = report_about.upper()
-        work_title = work_title.upper()
-        course_name = course_name.upper()
 
-        current_year = datetime.now().year
-        pdfmetrics.registerFont(TTFont('Times-New-Roman', 'Times-New-Roman.ttf'))
+@router.message(Command('titul'))
+async def create_title_page_start(message: types.Message, state: FSMContext):
+    await state.set_state(TitlePageState.department_number)
+    await message.answer("Введите номер кафедры:")
 
-        c = canvas.Canvas("title_page.pdf", pagesize=A4)
-        c.setFont("Times-New-Roman", 12)
-        c.drawCentredString(297.5, 800, "ГУАП")
-        c.drawCentredString(297.5, 760, f"КАФЕДРА №{department_number}")
-        c.drawString(70, 700, "ОТЧЕТ")
-        c.drawString(70, 680, "ЗАЩИЩЕН С ОЦЕНКОЙ")
-        c.drawString(70, 660, "ПРЕПОДАВАТЕЛЬ")
-        c.drawString(80, 640, position)
-        c.line(70, 635, 230, 635)
-        c.setFont("Times-New-Roman", 10)
-        c.drawString(80, 625, "должность, уч. степень, звание")
-        c.line(250, 635, 410, 635)
-        c.drawString(295, 625, "подпись, дата")
-        c.setFont("Times-New-Roman", 12)
-        c.drawString(460, 640, teacher_name)
-        c.line(430, 635, 580, 635)
-        c.setFont("Times-New-Roman", 10)
-        c.drawString(460, 625, "инициалы, фамилия")
-        c.setFont("Times-New-Roman", 14)
-        c.drawCentredString(297.5, 550, f"ОТЧЕТ О {report_about}")
-        c.drawCentredString(297.5, 500, work_title)
-        c.setFont("Times-New-Roman", 12)
-        c.drawCentredString(297.5, 430, "по курсу:")
-        c.setFont("Times-New-Roman", 14)
-        c.drawCentredString(297.5, 410, course_name)
-        c.setFont("Times-New-Roman", 12)
-        c.drawString(70, 290, "РАБОТУ ВЫПОЛНИЛ")
-        c.drawString(70, 270, f"СТУДЕНТ гр. №")
-        c.drawString(215, 275, group_number)
-        c.line(180, 270, 280, 270)
-        c.line(300, 270, 430, 270)
-        c.setFont("Times-New-Roman", 10)
-        c.drawString(335, 260, "подпись, дата")
-        c.setFont("Times-New-Roman", 12)
-        c.drawString(470, 275, student_name)
-        c.line(450, 270, 580, 270)
-        c.setFont("Times-New-Roman", 10)
-        c.drawString(470, 260, "инициалы, фамилия")
-        c.setFont("Times-New-Roman", 12)
-        c.drawCentredString(297.5, 100, f"Санкт-Петербург {current_year}")
-        c.save()
 
-        document = FSInputFile('title_page.pdf')
-        await message.answer_document(document)
-        os.remove('title_page.pdf')
+@router.message(TitlePageState.department_number)
+async def process_department_number(message: types.Message, state: FSMContext):
+    await state.update_data(department_number=message.text.strip())
+    await message.answer("Введите должность преподавателя:")
+    await state.set_state(TitlePageState.position)
 
+@router.message(TitlePageState.position)
+async def process_position(message: types.Message, state: FSMContext):
+    await state.update_data(position=message.text.strip())
+    await message.answer("Введите имя преподавателя:")
+    await state.set_state(TitlePageState.teacher_name)
+
+@router.message(TitlePageState.teacher_name)
+async def process_teacher_name(message: types.Message, state: FSMContext):
+    await state.update_data(teacher_name=message.text.strip())
+    await message.answer("Введите название отчета:")
+    await state.set_state(TitlePageState.report_about)
+
+@router.message(TitlePageState.report_about)
+async def process_report_about(message: types.Message, state: FSMContext):
+    await state.update_data(report_about=message.text.strip())
+    await message.answer("Введите название работы:")
+    await state.set_state(TitlePageState.work_title)
+
+@router.message(TitlePageState.work_title)
+async def process_work_title(message: types.Message, state: FSMContext):
+    await state.update_data(work_title=message.text.strip())
+    await message.answer("Введите название курса:")
+    await state.set_state(TitlePageState.course_name)
+
+@router.message(TitlePageState.course_name)
+async def process_course_name(message: types.Message, state: FSMContext):
+    await state.update_data(course_name=message.text.strip())
+    await message.answer("Введите номер группы:")
+    await state.set_state(TitlePageState.group_number)
+
+@router.message(TitlePageState.group_number)
+async def process_group_number(message: types.Message, state: FSMContext):
+    await state.update_data(group_number=message.text.strip())
+    await message.answer("Введите имя студента:")
+    await state.set_state(TitlePageState.student_name)
+
+@router.message(TitlePageState.student_name)
+async def process_student_name(message: types.Message, state: FSMContext):
+    await state.update_data(student_name=message.text.strip())
+    data = await state.get_data()
+
+    department_number = data['department_number']
+    position = data['position']
+    teacher_name = data['teacher_name']
+    report_about = data['report_about']
+    work_title = data['work_title']
+    course_name = data['course_name']
+    group_number = data['group_number']
+    student_name = data['student_name']
+
+
+    report_about = report_about.upper()
+    work_title = work_title.upper()
+    course_name = course_name.upper()
+    current_year = datetime.now().year
+    pdfmetrics.registerFont(TTFont('Times-New-Roman', 'Times-New-Roman.ttf'))
+    c = canvas.Canvas("title_page.pdf", pagesize=A4)
+    c.setFont("Times-New-Roman", 12)
+    c.drawCentredString(297.5, 800, "ГУАП")
+    c.drawCentredString(297.5, 760, f"КАФЕДРА №{department_number}")
+    c.drawString(70, 700, "ОТЧЕТ")
+    c.drawString(70, 680, "ЗАЩИЩЕН С ОЦЕНКОЙ")
+    c.drawString(70, 660, "ПРЕПОДАВАТЕЛЬ")
+    c.drawString(80, 640, position)
+    c.line(70, 635, 230, 635)
+    c.setFont("Times-New-Roman", 10)
+    c.drawString(80, 625, "должность, уч. степень, звание")
+    c.line(250, 635, 410, 635)
+    c.drawString(295, 625, "подпись, дата")
+    c.setFont("Times-New-Roman", 12)
+    c.drawString(460, 640, teacher_name)
+    c.line(430, 635, 580, 635)
+    c.setFont("Times-New-Roman", 10)
+    c.drawString(460, 625, "инициалы, фамилия")
+    c.setFont("Times-New-Roman", 14)
+    c.drawCentredString(297.5, 550, f"ОТЧЕТ О {report_about}")
+    c.drawCentredString(297.5, 500, work_title)
+    c.setFont("Times-New-Roman", 12)
+    c.drawCentredString(297.5, 430, "по курсу:")
+    c.setFont("Times-New-Roman", 14)
+    c.drawCentredString(297.5, 410, course_name)
+    c.setFont("Times-New-Roman", 12)
+    c.drawString(70, 290, "РАБОТУ ВЫПОЛНИЛ")
+    c.drawString(70, 270, f"СТУДЕНТ гр. №")
+    c.drawString(215, 275, group_number)
+    c.line(180, 270, 280, 270)
+    c.line(300, 270, 430, 270)
+    c.setFont("Times-New-Roman", 10)
+    c.drawString(335, 260, "подпись, дата")
+    c.setFont("Times-New-Roman", 12)
+    c.drawString(470, 275, student_name)
+    c.line(450, 270, 580, 270)
+    c.setFont("Times-New-Roman", 10)
+    c.drawString(470, 260, "инициалы, фамилия")
+    c.setFont("Times-New-Roman", 12)
+    c.drawCentredString(297.5, 100, f"Санкт-Петербург {current_year}")
+    c.save()
+    document = FSInputFile('title_page.pdf')
+    await message.answer_document(document)
+    os.remove('title_page.pdf')
+    await state.clear()
 @router.message()
 async def handle_message(message: types.Message,  state: FSMContext):
-    text = message.text.strip()
-    match = re.match(r'^(\d+)-(\d+)$', text)
-    if match:
-        start_page = int(match.group(1))
-        end_page = int(match.group(2))
-        if start_page <= end_page and end_page <= total_pages:
-            await bot.send_message(message.chat.id, f"Файл разделен с {start_page} по {end_page} страницу")
-            await split_pdf(start_page, end_page, message)
-        else: await message.reply("Пожалуйста, введите корректные данные")
-    else:
-        await message.reply("Пожалуйста, введите диапазон в формате 'начальная_страница-конечная_страница', например '1-4'.")
+    if await state.get_state() == 'ConversionState:waiting_for_edit' :
+        text = message.text.strip()
+        match = re.match(r'^(\d+)-(\d+)$', text)
+        if match:
+            start_page = int(match.group(1))
+            end_page = int(match.group(2))
+            if start_page <= end_page and end_page <= total_pages:
+                await bot.send_message(message.chat.id, f"Файл разделен с {start_page} по {end_page} страницу")
+                await split_pdf(start_page, end_page, message)
+            else: await message.reply("Пожалуйста, введите корректные данные")
+        else:
+            await message.reply("Пожалуйста, введите диапазон в формате 'начальная_страница-конечная_страница', например '1-4'.")
 
 
 async def split_pdf(start_page, end_page, message):

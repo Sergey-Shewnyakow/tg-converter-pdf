@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8d8e4133-3d19-4841-94b7-524b807d3896" name="Changes" comment="Fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Temp/divide.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Temp/divide.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Temp/temp_photo.png" beforeDir="false" afterPath="$PROJECT_DIR$/Temp/temp_photo.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/handlers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keyboards.py" beforeDir="false" afterPath="$PROJECT_DIR$/keyboards.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +31,12 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Serge/Desktop/SUAI/4 семестр/TP&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/Serge/Desktop/SUAI/4 семестр/Технологии программирования/LAB7"
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
